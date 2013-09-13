@@ -9,27 +9,48 @@ public class UserThread implements Runnable {
 	private String name;
 	private String message;
 	private BufferedReader in;
+	private PrintWriter out;
 	private ChatResponder responder;
 
-	public UserThread(BufferedReader input, ChatResponder r) {
+	public UserThread(BufferedReader input, PrintWriter output, ChatResponder r) {
 		responder = r;
 		name = "guest_"+UserThread.nextUser;
 		nextUser++;
 		in = input;
+		out = output;
 	}
 	public void run() {
 		while (true) {
 			try {
+				boolean sendMessage = true;
 				String input = this.in.readLine();
-				message = "<"+name+"> "+input;
-				responder.addMessageToQueue(message);
+				if (input == null) {
+					responder.removeUser(this);
+					responder.addMessageToQueue(name+" disconnected...");
+					return;
+				}
+				if (input.split(" ")[0].equals("/n")) {
+					String newName = input.substring(input.indexOf(" ")+1);
+					if (responder.validateName(newName)) {
+						String oldName = this.name;
+						this.name = newName;
+						message = oldName+" changed his/her name to "+newName+".";
+					} else {
+						synchronized(responder) {
+							out.println("That name is already taken.");
+							sendMessage = false;
+						}
+					}
+				} else {
+					message = "<"+name+"> "+input;
+				}
+				if (sendMessage) {
+					responder.addMessageToQueue(message);
+				}
 			} catch (IOException e) {
 				System.out.println("IOException: " + e);
 			}
 		}
-	}
-	public void setName(String newName) {
-		name = newName;
 	}
 	public String getName() {
 		return name;

@@ -1,31 +1,26 @@
 package pkg;
 
 import java.io.PrintWriter;
-import java.util.LinkedList;
+import java.util.*;
 import java.util.concurrent.Semaphore;
 
 public class ChatResponder implements Runnable {
 	
-	private LinkedList<PrintWriter> outs;
+	private ArrayList<PrintWriter> outs;
 	private LinkedList<String> messages;
-	private LinkedList<UserThread> users;
+	private ArrayList<UserThread> users;
 	private Semaphore blocker;
 	
 	public ChatResponder() {
-		outs = new LinkedList<PrintWriter>();
+		outs = new ArrayList<PrintWriter>();
 		messages = new LinkedList<String>();;
-		users = new LinkedList<UserThread>();;
+		users = new ArrayList<UserThread>();;
 		blocker = new Semaphore(0);
-	}
-
-	public void addOutput(PrintWriter out) {
-		outs.add(out);
 	}
 	
 	private void outputMessage(String message) {
-		System.out.println("printing...");
 		for (PrintWriter o: outs) {
-			o.write(message);
+			o.println(message);
 		}
 	}
 
@@ -33,9 +28,7 @@ public class ChatResponder implements Runnable {
 	public void run() {
 		while (true) {
 			try {
-				System.out.println("Waiting...");
 				blocker.acquire();
-				System.out.println("Done waiting...");
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -48,14 +41,30 @@ public class ChatResponder implements Runnable {
 	}
 	public void addMessageToQueue(String str) {
 		synchronized(this) {
-			System.out.println("Adding message...");
 			messages.add(str);
+			System.out.println(messages);
 		}
-		System.out.println("Notifying of addition...");
 		blocker.release();
 	}
 	public void addUser(UserThread user, PrintWriter out) {
-		users.add(user);
-		outs.add(out);
+		synchronized(blocker) {
+			users.add(user);
+			outs.add(out);
+		}
+	}
+	public void removeUser(UserThread user) {
+		int index = users.indexOf(user);
+		synchronized(blocker) {
+			users.remove(index);
+			outs.remove(index);
+		}
+	}
+	public boolean validateName(String name) {
+		for (UserThread user : users) {
+			if (user.getName().equals(name)) {
+				return false;
+			}
+		}
+		return true;
 	}
 }

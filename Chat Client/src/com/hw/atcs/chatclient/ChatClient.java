@@ -88,7 +88,7 @@ public class ChatClient extends JFrame implements ActionListener {
     }
 
     public static void main(String[] args)  {
-        ChatClient client = new ChatClient(args[0], args[1]);
+        ChatClient client = new ChatClient("localhost", "4000");
         client.listen();
     }
 }

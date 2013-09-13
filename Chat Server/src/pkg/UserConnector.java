@@ -6,10 +6,13 @@ import java.util.ArrayDeque;
 import java.util.LinkedList;
 
 public class UserConnector {
+	private ChatResponder responder;
+	private ServerSocket serverSocket;
 	
 	public static void main(String [] args) {
 		String a[] = { "4000" };
 		UserConnector connector = new UserConnector(a);
+		connector.openConnectingPort();
 	}
 	
 	public UserConnector(String[] args) {
@@ -17,7 +20,6 @@ public class UserConnector {
             System.out.println("Usage: ChatServer <port>");
             System.exit(1);
         }
-        ServerSocket serverSocket = null;
         
         /* Create the server socket */
         try {
@@ -26,25 +28,27 @@ public class UserConnector {
             System.out.println("IOException: " + e);
             System.exit(1);
         }
-        ChatResponder responder = new ChatResponder();
+        responder = new ChatResponder();
         new Thread(responder).start();
         /* In the main thread, continuously listen for new clients and spin off threads for them. */
-        while (true) {
-            try {
-                /* Get a new client */
-                Socket clientSocket = serverSocket.accept();
-                
-                /* Create a thread for it and start! */
-                PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-                BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                UserThread clientThread = new UserThread(in, responder);
-                new Thread(clientThread).start();
-                responder.addUser(clientThread, out);
-                
-            } catch (IOException e) {
-                System.out.println("Accept failed: " + e);
-            }
-        }
+	}
+	public void openConnectingPort() {
+		 while (true) {
+	            try {
+	                /* Get a new client */
+	                Socket clientSocket = serverSocket.accept();
+	                
+	                /* Create a thread for it and start! */
+	                PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+	                BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+	                UserThread clientThread = new UserThread(in, out, responder);
+	                new Thread(clientThread).start();
+	                responder.addUser(clientThread, out);
+	                
+	            } catch (IOException e) {
+	                System.out.println("Accept failed: " + e);
+	            }
+	        }
 	}
 }
 
