@@ -2,8 +2,6 @@ package pkg;
 
 import java.net.*;
 import java.io.*;
-import java.util.ArrayDeque;
-import java.util.LinkedList;
 
 public class UserConnector {
 	private ChatResponder responder;
@@ -41,7 +39,7 @@ public class UserConnector {
 	                /* Create a thread for it and start! */
 	                PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
 	                BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-	                UserThread clientThread = new UserThread(in, out, responder);
+	                UserThread clientThread = new UserThread(clientSocket,in, out, responder);
 	                new Thread(clientThread).start();
 	                responder.addUser(clientThread, out);
 	                

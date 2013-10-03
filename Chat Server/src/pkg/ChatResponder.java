@@ -67,4 +67,12 @@ public class ChatResponder implements Runnable {
 		}
 		return true;
 	}
+	public UserThread getUserByName(String name) {
+		for (UserThread u : users) {
+			if (name.equals(u.getName())) {
+				return u;
+			}
+		}
+		return null;
+	}
 }
